@@ -13,8 +13,12 @@ app.use(express.json());
 
 const {
     MongoClient,
-    ServerApiVersion
+    ServerApiVersion,
+    ObjectId
 } = require('mongodb');
+
+
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ealpifc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -29,11 +33,83 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
 
-        const menuCollection = client.db('weddingMatrimony').collection('users');
+        const userCollection = client.db('weddingMatrimony').collection('users');
+        const bioDataCollection = client.db('weddingMatrimony').collection('biodatas');
 
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email: email
+            };
+            const user = await userCollection.findOne(query);
+            res.send(user);
+        })
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+
+            // checking user existency
+            const query = {
+                email: user.email
+            }
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
+                return res.send({
+                    message: 'User already exists',
+                    insertedId: null
+                })
+            }
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
+
+
+
+
+        // biodata related api
+        app.post('/biodatas', async (req, res) => {
+            const bioData = req.body;
+            const userId = bioData.userId;
+            console.log(bioData)
+            const query = {
+                userId: bioData.userId
+            }
+            const existingUser = await bioDataCollection.findOne(query);
+            // console.log(existingUser)
+            if (!existingUser) {
+                const lastBiodata = await bioDataCollection.find({}).sort({
+                    biodataId: -1
+                }).limit(1).toArray();
+
+                let biodataId = 1; // Default value if no documents exist
+                if (lastBiodata.length > 0) {
+                    biodataId = lastBiodata[0].biodataId + 1;
+                }
+
+                const newDocument = {
+                    ...bioData,
+                    biodataId
+                };
+                const result = await bioDataCollection.insertOne(newDocument);
+                res.send(result);
+            } else {
+                const updateResult = await bioDataCollection.updateOne({
+                    userId: userId
+                }, {
+                    $set: bioData
+                })
+                res.send(updateResult);
+            }
+
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({
@@ -42,16 +118,10 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
-        await client.close();
+        // await client.close();
     }
 }
 run().catch(console.dir);
-
-
-
-
-
-
 
 
 
