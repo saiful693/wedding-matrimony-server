@@ -73,12 +73,27 @@ async function run() {
 
 
 
-
         // biodata related api
+        app.get('/biodatas', async (req, res) => {
+            const result = await bioDataCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/biodatas/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log("bus", id);
+            const query = {
+                userId: id
+            }
+            const result = await bioDataCollection.findOne(query);
+            res.send(result);
+        });
+
+
         app.post('/biodatas', async (req, res) => {
             const bioData = req.body;
             const userId = bioData.userId;
-            console.log(bioData)
+
             const query = {
                 userId: bioData.userId
             }
