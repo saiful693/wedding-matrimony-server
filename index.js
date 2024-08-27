@@ -38,6 +38,7 @@ async function run() {
 
         const userCollection = client.db('weddingMatrimony').collection('users');
         const bioDataCollection = client.db('weddingMatrimony').collection('biodatas');
+        const storyCollection = client.db('weddingMatrimony').collection('stories');
 
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
@@ -124,6 +125,32 @@ async function run() {
             }
 
         })
+
+
+
+
+
+
+        // stories related api
+        app.post('/stories', async (req, res) => {
+            const story = req.body;
+            // checking user existency
+            const query = {
+                userEmail: story.userEmail
+            }
+            const existingUser = await storyCollection.findOne(query);
+            if (existingUser) {
+                return res.send({
+                    message: 'Story already exists',
+                    insertedId: null
+                })
+            }
+            const result = await storyCollection.insertOne(story);
+            res.send(result);
+
+        })
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({
