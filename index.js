@@ -72,7 +72,6 @@ async function run() {
         })
 
 
-
         // biodata related api
         app.get('/biodatas', async (req, res) => {
             const result = await bioDataCollection.find().toArray();
