@@ -75,18 +75,74 @@ async function run() {
 
         // biodata related api
         app.get('/biodatas', async (req, res) => {
-            const result = await bioDataCollection.find().toArray();
+            const {
+                ageFrom,
+                ageTo,
+                biodataType,
+                permanentDivision
+            } = req.query;
+
+            const filter = {};
+
+            if (ageFrom) {
+                filter.age = {
+                    $gte: ageFrom
+                };
+            }
+
+            if (ageTo) {
+                filter.age = filter.age ? {
+                    ...filter.age,
+                    $lte: ageTo
+                } : {
+                    $lte: ageTo
+                };
+            }
+
+            if (biodataType) {
+                filter.biodataType = biodataType;
+            }
+            if (permanentDivision) {
+                filter.permanentDivision = permanentDivision;
+            }
+
+
+            const result = await bioDataCollection.find(filter).toArray();
             res.send(result);
         })
 
+
+        app.get('/biodatas/category/:category', async (req, res) => {
+            const category = req.params.category;
+            const query = {
+                biodataType: category
+            };
+
+            const result = await bioDataCollection.find(query).limit(3).toArray();
+            console.log(result)
+            res.send(result);
+        })
+
+
+
+
         app.get('/biodatas/:id', async (req, res) => {
             const id = req.params.id;
-            console.log("bus", id);
+            const query = {
+                _id: new ObjectId(id)
+            }
+            const result = await bioDataCollection.findOne(query);
+            res.send(result);
+        });
+
+        app.get('/biodatas/user/:id', async (req, res) => {
+            const id = req.params.id;
             const query = {
                 userId: id
             }
             const result = await bioDataCollection.findOne(query);
             res.send(result);
+
         });
 
 
@@ -132,6 +188,13 @@ async function run() {
 
 
         // stories related api
+
+
+        app.get('/stories', async (req, res) => {
+            const result = await storyCollection.find().toArray();
+            res.send(result);
+        })
+
         app.post('/stories', async (req, res) => {
             const story = req.body;
             // checking user existency
