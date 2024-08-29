@@ -42,6 +42,8 @@ async function run() {
         const bioDataCollection = client.db('weddingMatrimony').collection('biodatas');
         const storyCollection = client.db('weddingMatrimony').collection('stories');
         const checkoutCollection = client.db('weddingMatrimony').collection('checkout');
+        const premiumCollection = client.db('weddingMatrimony').collection('premium');
+        const favouriteCollection = client.db('weddingMatrimony').collection('favourites');
 
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
@@ -244,8 +246,28 @@ async function run() {
         })
 
 
-        // checkout
+        // premium related api
+        app.post('/premium', async (req, res) => {
+            const premiumReq = req.body;
+            const result = await premiumCollection.insertOne(premiumReq);
+            res.send(result);
+        })
 
+
+
+
+        // favourites  related api
+        app.post('/favourites', async (req, res) => {
+            const favReq = req.body;
+            const result = await favouriteCollection.insertOne(favReq);
+            res.send(result);
+        })
+
+
+
+
+
+        // checkout
         app.get('/checkout/:email', async (req, res) => {
             const email = req.params.email;
             console.log(email)
@@ -261,6 +283,17 @@ async function run() {
             const checkout = req.body;
             const checkoutResult = await checkoutCollection.insertOne(checkout);
             res.send(checkoutResult)
+        })
+
+
+        app.delete('/checkout/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
+            }
+
+            const result = await checkoutCollection.deleteOne(query);
+            res.send(result);
         })
 
 
