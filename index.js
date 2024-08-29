@@ -179,6 +179,17 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/biodatas/checkout/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
+            }
+            const result = await bioDataCollection.findOne(query);
+            res.send(result);
+
+        });
+
+
         app.get('/biodatas/user/:id', async (req, res) => {
             const id = req.params.id;
             const query = {
@@ -336,15 +347,24 @@ async function run() {
 
 
         // contact collection
+
+        app.get('/contact', async (req, res) => {
+            const result = await contactCollection.find().toArray();
+            res.send(result)
+        })
+
         app.get('/contact/:email', async (req, res) => {
             const email = req.params.email;
             console.log(email)
             const query = {
                 email: email
             };
-            const requestData = await contactCollection.find(query).toArray();;
+            const requestData = await contactCollection.find(query).toArray();
             res.send(requestData);
         })
+
+
+
 
 
         app.post('/contact', async (req, res) => {
@@ -352,6 +372,22 @@ async function run() {
             const contactResult = await contactCollection.insertOne(contact);
             res.send(contactResult)
         })
+
+
+
+        app.patch('/contact/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = {
+                _id: new ObjectId(id)
+            };
+            const updatedDoc = {
+                $set: {
+                    status: 'Approved'
+                }
+            }
+            const result = await contactCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        });
 
 
         app.delete('/contact/:id', async (req, res) => {
