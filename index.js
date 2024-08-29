@@ -2,7 +2,9 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
+
 
 
 // middleware
@@ -39,6 +41,7 @@ async function run() {
         const userCollection = client.db('weddingMatrimony').collection('users');
         const bioDataCollection = client.db('weddingMatrimony').collection('biodatas');
         const storyCollection = client.db('weddingMatrimony').collection('stories');
+        const checkoutCollection = client.db('weddingMatrimony').collection('checkout');
 
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
@@ -79,8 +82,10 @@ async function run() {
                 ageFrom,
                 ageTo,
                 biodataType,
-                permanentDivision
+                permanentDivision,
+                ids
             } = req.query;
+
 
             const filter = {};
 
@@ -102,11 +107,18 @@ async function run() {
             if (biodataType) {
                 filter.biodataType = biodataType;
             }
+
+
             if (permanentDivision) {
                 filter.permanentDivision = permanentDivision;
             }
 
-
+            if (ids) {
+                const idsArray = ids.split(',').map(id => new ObjectId(id.trim()));
+                filter._id = {
+                    $in: idsArray
+                };
+            }
             const result = await bioDataCollection.find(filter).toArray();
             res.send(result);
         })
@@ -122,8 +134,6 @@ async function run() {
             console.log(result)
             res.send(result);
         })
-
-
 
 
         app.get('/biodatas/:id', async (req, res) => {
@@ -211,6 +221,46 @@ async function run() {
             const result = await storyCollection.insertOne(story);
             res.send(result);
 
+        })
+
+
+
+        // payment intent
+        app.post('/create-payment-intent', async (req, res) => {
+            const {
+                price
+            } = req.body;
+            const amount = parseInt(price * 100);
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            })
+        })
+
+
+        // checkout
+
+        app.get('/checkout/:email', async (req, res) => {
+            const email = req.params.email;
+            console.log(email)
+            const query = {
+                email: email
+            };
+            const requestData = await checkoutCollection.find(query).toArray();;
+            res.send(requestData);
+        })
+
+
+        app.post('/checkout', async (req, res) => {
+            const checkout = req.body;
+            const checkoutResult = await checkoutCollection.insertOne(checkout);
+            res.send(checkoutResult)
         })
 
 
