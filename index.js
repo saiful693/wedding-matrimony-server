@@ -60,6 +60,38 @@ async function run() {
             res.send(user);
         })
 
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = {
+                _id: new ObjectId(id)
+            };
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        });
+
+
+
+        app.patch('/users/premium/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = {
+                _id: new ObjectId(id)
+            };
+            const updatedDoc = {
+                $set: {
+                    isPremium: true,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        });
+
+
+
         app.post('/users', async (req, res) => {
             const user = req.body;
 
@@ -319,15 +351,17 @@ async function run() {
 
 
         // checkout
-        // app.get('/checkout/:email', async (req, res) => {
-        //     const email = req.params.email;
-        //     console.log(email)
-        //     const query = {
-        //         email: email
-        //     };
-        //     const requestData = await checkoutCollection.find(query).toArray();;
-        //     res.send(requestData);
-        // })
+        app.get('/checkout', async (req, res) => {
+            const totalAmount = await checkoutCollection.aggregate([{
+                $group: {
+                    _id: null,
+                    total: {
+                        $sum: "$amount"
+                    }
+                }
+            }]).toArray();
+            res.send(totalAmount);
+        })
 
 
         app.post('/checkout', async (req, res) => {
