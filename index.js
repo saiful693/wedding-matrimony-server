@@ -75,7 +75,6 @@ async function run() {
         });
 
 
-
         app.patch('/users/premium/:id', async (req, res) => {
             const id = req.params.id;
             const filter = {
@@ -280,9 +279,26 @@ async function run() {
 
 
         // premium related api
+
+        app.get('/premium', async (req, res) => {
+            const result = await premiumCollection.find().toArray();
+            res.send(result);
+        })
+
         app.post('/premium', async (req, res) => {
             const premiumReq = req.body;
             const result = await premiumCollection.insertOne(premiumReq);
+            res.send(result);
+        })
+
+
+        app.delete('/premium/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                bioDataId: id.toString()
+            }
+
+            const result = await premiumCollection.deleteOne(query);
             res.send(result);
         })
 
