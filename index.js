@@ -42,6 +42,7 @@ async function run() {
         const bioDataCollection = client.db('weddingMatrimony').collection('biodatas');
         const storyCollection = client.db('weddingMatrimony').collection('stories');
         const checkoutCollection = client.db('weddingMatrimony').collection('checkout');
+        const contactCollection = client.db('weddingMatrimony').collection('contact');
         const premiumCollection = client.db('weddingMatrimony').collection('premium');
         const favouriteCollection = client.db('weddingMatrimony').collection('favourites');
 
@@ -257,6 +258,17 @@ async function run() {
 
 
         // favourites  related api
+
+        app.get('/favourites/:email', async (req, res) => {
+            const email = req.params.email;
+            console.log(email)
+            const query = {
+                email: email
+            };
+            const requestData = await favouriteCollection.find(query).toArray();;
+            res.send(requestData);
+        })
+
         app.post('/favourites', async (req, res) => {
             const favReq = req.body;
             const result = await favouriteCollection.insertOne(favReq);
@@ -264,19 +276,58 @@ async function run() {
         })
 
 
+        app.delete('/favourites/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
+            }
+
+            const result = await favouriteCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
-
-        // checkout
-        app.get('/checkout/:email', async (req, res) => {
+        // contact collection
+        app.get('/contact/:email', async (req, res) => {
             const email = req.params.email;
             console.log(email)
             const query = {
                 email: email
             };
-            const requestData = await checkoutCollection.find(query).toArray();;
+            const requestData = await contactCollection.find(query).toArray();;
             res.send(requestData);
         })
+
+
+        app.post('/contact', async (req, res) => {
+            const contact = req.body;
+            const contactResult = await contactCollection.insertOne(contact);
+            res.send(contactResult)
+        })
+
+
+        app.delete('/contact/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
+            }
+
+            const result = await contactCollection.deleteOne(query);
+            res.send(result);
+        })
+
+
+
+        // checkout
+        // app.get('/checkout/:email', async (req, res) => {
+        //     const email = req.params.email;
+        //     console.log(email)
+        //     const query = {
+        //         email: email
+        //     };
+        //     const requestData = await checkoutCollection.find(query).toArray();;
+        //     res.send(requestData);
+        // })
 
 
         app.post('/checkout', async (req, res) => {
@@ -286,15 +337,15 @@ async function run() {
         })
 
 
-        app.delete('/checkout/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = {
-                _id: new ObjectId(id)
-            }
+        // app.delete('/checkout/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = {
+        //         _id: new ObjectId(id)
+        //     }
 
-            const result = await checkoutCollection.deleteOne(query);
-            res.send(result);
-        })
+        //     const result = await checkoutCollection.deleteOne(query);
+        //     res.send(result);
+        // })
 
 
 
