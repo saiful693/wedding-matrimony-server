@@ -75,6 +75,23 @@ async function run() {
         });
 
 
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email: email
+            };
+            const user = await userCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user.role === 'admin';
+            }
+            res.send({
+                admin
+            });
+        });
+
+
+
         app.patch('/users/premium/:id', async (req, res) => {
             const id = req.params.id;
             const filter = {
@@ -165,7 +182,7 @@ async function run() {
             };
 
             const result = await bioDataCollection.find(query).limit(3).toArray();
-            console.log(result)
+            // console.log(result)
             res.send(result);
         })
 
@@ -320,7 +337,7 @@ async function run() {
 
         app.get('/favourites/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email)
+            // console.log(email)
             const query = {
                 email: email
             };
@@ -355,7 +372,7 @@ async function run() {
 
         app.get('/contact/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email)
+            // console.log(email)
             const query = {
                 email: email
             };
