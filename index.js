@@ -45,6 +45,7 @@ async function run() {
         const contactCollection = client.db('weddingMatrimony').collection('contact');
         const premiumCollection = client.db('weddingMatrimony').collection('premium');
         const favouriteCollection = client.db('weddingMatrimony').collection('favourites');
+        const notificationCollection = client.db('weddingMatrimony').collection('notifications');
 
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray();
@@ -127,6 +128,9 @@ async function run() {
         })
 
 
+
+
+
         // biodata related api
         app.get('/biodatas', async (req, res) => {
             const {
@@ -170,6 +174,9 @@ async function run() {
                     $in: idsArray
                 };
             }
+
+            console.log(filter);
+            console.log('filter')
             const result = await bioDataCollection.find(filter).toArray();
             res.send(result);
         })
@@ -376,8 +383,18 @@ async function run() {
             const query = {
                 email: email
             };
-            const requestData = await contactCollection.find(query).toArray();
+            const requestData = await contactCollection.find(query).sort({ date: -1 }).toArray();
+            // console.log(requestData)
             res.send(requestData);
+        })
+
+        // Get a single room data from db using _id
+        app.get('/contacts/:id', async (req, res) => {
+            const id = req.params.id;
+            const email = req.query.email;
+            console.log(email)
+            const result = await contactCollection.findOne({ bioDataId: id, email: email })
+            res.send(result);
         })
 
 
@@ -399,7 +416,22 @@ async function run() {
             };
             const updatedDoc = {
                 $set: {
-                    status: 'Approved'
+                    status: 'Approved',
+                    markAsRead: false
+                }
+            }
+            const result = await contactCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        });
+
+        app.patch('/contacts/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = {
+                _id: new ObjectId(id)
+            };
+            const updatedDoc = {
+                $set: {
+                    markAsRead: true
                 }
             }
             const result = await contactCollection.updateOne(filter, updatedDoc);
@@ -440,6 +472,11 @@ async function run() {
         })
 
 
+
+        // notification related api
+
+
+
         // app.delete('/checkout/:id', async (req, res) => {
         //     const id = req.params.id;
         //     const query = {
@@ -453,10 +490,10 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({
-            ping: 1
-        });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({
+        //     ping: 1
+        // });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
